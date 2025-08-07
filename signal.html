@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dein Signal</title>
+  <style>
+    body { background: #0a0a0a; color: #ffffff; font-family: system-ui, sans-serif; text-align: center; padding: 3rem; }
+    .box { background: #111111; padding: 2rem; margin-top: 2rem; border-left: 4px solid #66ff99; display: inline-block; max-width: 600px; }
+    a { color: #66ff99; }
+  </style>
+</head>
+<body>
+  <h1>🧠 Öffentliches Signal</h1>
+  <div class="box" id="signalBox">Lade...</div>
+
+  <script>
+    /**
+     * Einfaches Skript, das einen einzelnen Signal-Eintrag aus Netlify Blob Storage lädt
+     * und im DOM darstellt. Die ID wird per Query-Parameter ?id=... übergeben.
+     * Optional zeigt es den Referrer an, falls vorhanden.
+     */
+    async function loadSignal() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id) {
+        document.getElementById('signalBox').innerText = '❌ Keine ID angegeben.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/.netlify/blobs/data/signals.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Blob fetch failed');
+        const data = await res.json();
+        const signal = data.find(entry => entry.id === id);
+
+        if (!signal) {
+          document.getElementById('signalBox').innerText = '❌ Signal nicht gefunden.';
+          return;
+        }
+
+        const time = new Date(signal.timestamp).toLocaleString('de-DE');
+
+        let html = `<p><strong>Zitat:</strong> "${signal.quote}"</p>`;
+        html += `<p><small>Gesendet am: ${time}</small></p>`;
+        if (signal.referrer) {
+          html += `<p><small>Empfohlen von Signal-ID: ${signal.referrer}</small></p>`;
+        }
+
+        document.getElementById('signalBox').innerHTML = html;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('signalBox').innerText = '❌ Fehler beim Laden des Signals.';
+      }
+    }
+
+    loadSignal();
+  </script>
+</body>
+</html>
+
