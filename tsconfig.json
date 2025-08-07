@@ -5,6 +5,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["node", "vite/client", "react", "react-dom"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -27,5 +28,12 @@
     }
   },
   "include": ["src"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/__tests__/**",
+    "setupTests.ts",
+    "testServer.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

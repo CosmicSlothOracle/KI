@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signals – Weltkarte</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem; background: #f8fafc; color: #0f172a; }
+    h1 { margin: 0 0 1rem; }
+    .note { color: #475569; margin-bottom: 1rem; }
+    .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; align-items: start; }
+    #map { height: 60vh; background: #e2e8f0; border: 1px solid #cbd5e1; }
+    table { border-collapse: collapse; width: 100%; background: white; }
+    th, td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
+    th { background: #f1f5f9; }
+  </style>
+</head>
+<body>
+  <h1>🌍 Öffentliche Signale – Weltkarte</h1>
+  <p class="note">Anonymisiert: Marker liegen bei Länderzentroiden, Daten werden nicht rückverfolgbar gespeichert.</p>
+  <div class="layout">
+    <div id="map"></div>
+    <table>
+      <thead>
+        <tr><th>Ländercode</th><th>Anzahl</th></tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="2">Lade…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function resolveBlobUrl() {
+      const host = window.location.hostname || '';
+      const isNetlify = host.includes('netlify');
+      const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+      return (!isLocalhost || isNetlify)
+        ? '/.netlify/blobs/data/signals.json'
+        : '/signals.json';
+    }
+
+    async function load() {
+      try {
+        const res = await fetch(resolveBlobUrl(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('Blob fetch failed');
+        const data = await res.json();
+        const byCountry = new Map();
+        for (const s of data) {
+          const code = s.countryCode || '—';
+          byCountry.set(code, (byCountry.get(code) || 0) + 1);
+        }
+        const rows = Array.from(byCountry.entries()).sort((a,b) => b[1]-a[1]);
+        const tbody = document.getElementById('rows');
+        tbody.innerHTML = rows.map(([code, count]) => `<tr><td>${code}</td><td>${count}</td></tr>`).join('');
+
+        const centroidsRes = await fetch('/country-centroids.json', { cache: 'force-cache' });
+        const centroids = await centroidsRes.json();
+        renderMap(data, byCountry, centroids);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('rows').innerHTML = '<tr><td colspan="2">❌ Fehler beim Laden.</td></tr>';
+      }
+    }
+
+    function renderMap(data, byCountry, centroids) {
+      // Lightweight map without external tiles: simple SVG projection fallback
+      // For first iteration, place dots in a plain container using CSS transforms.
+      const map = document.getElementById('map');
+      map.innerHTML = '';
+      const width = map.clientWidth;
+      const height = map.clientHeight;
+
+      // Create a simple grid background for visual orientation
+      const grid = document.createElement('div');
+      grid.style.position = 'relative';
+      grid.style.width = '100%';
+      grid.style.height = '100%';
+      map.appendChild(grid);
+
+      for (const [code, count] of byCountry.entries()) {
+        if (code === '—' || !centroids[code]) continue;
+        const { lat, lng } = centroids[code];
+        // very rough equirectangular projection
+        const x = (lng + 180) / 360 * width;
+        const y = (90 - lat) / 180 * height;
+        const dot = document.createElement('div');
+        const size = Math.max(6, Math.min(24, 6 + Math.log(1 + count) * 6));
+        dot.style.position = 'absolute';
+        dot.style.left = `${x - size/2}px`;
+        dot.style.top = `${y - size/2}px`;
+        dot.style.width = `${size}px`;
+        dot.style.height = `${size}px`;
+        dot.style.background = 'rgba(37, 99, 235, 0.8)';
+        dot.style.border = '2px solid white';
+        dot.style.borderRadius = '9999px';
+        dot.title = `${code}: ${count}`;
+        grid.appendChild(dot);
+      }
+    }
+
+    load();
+    // Auto-refresh every 30 seconds to reflect new signals
+    setInterval(load, 30000);
+  </script>
+</body>
+</html>
+
+

@@ -3,10 +3,32 @@ export interface Signal {
   quote: string;
   timestamp: string;
   referrer?: string | null;
+  countryCode?: string | null;
 }
 
 // Environment detection
-const isProduction = process.env.NODE_ENV === 'production';
+// Prefer Vite env in browser builds; fall back to Node env for tests without importing Node types
+function detectIsProduction(): boolean {
+  // First, honor Node env (used in Vitest/tests)
+  const nodeEnv = (globalThis as unknown as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV;
+  if (nodeEnv === 'production') {
+    return true;
+  }
+
+  // Then fall back to Vite's injected env for browser builds
+  try {
+    const viteEnv = (import.meta as unknown as { env?: { PROD?: boolean } }).env;
+    if (viteEnv && typeof viteEnv.PROD === 'boolean') {
+      return viteEnv.PROD === true;
+    }
+  } catch {
+    // Ignore if import.meta is not available
+  }
+
+  return false;
+}
+
+const isProduction = detectIsProduction();
 const isNetlify = typeof window !== 'undefined' && window.location.hostname.includes('netlify');
 
 // Use Netlify Blobs in production/Netlify, fallback to public file in development

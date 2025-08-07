@@ -8,6 +8,7 @@ interface Question {
   correctAnswer: boolean;
   explanation: string;
   source: string;
+  image?: string; // optional, rendered if provided
 }
 
 const questions: Question[] = [
@@ -17,14 +18,16 @@ const questions: Question[] = [
     question: "Werden heute bereits autonome Waffensysteme entwickelt, die ohne menschliche Freigabe töten können?",
     correctAnswer: true,
     explanation: "Ja. Länder wie USA, Russland und Israel entwickeln Drohnen, die Ziele ohne menschliche Eingriffe angreifen.",
-    source: "https://www.theguardian.com/world/2025/jun/25/ukraine-russia-autonomous-drones-ai"
+    source: "https://www.theguardian.com/world/2025/jun/25/ukraine-russia-autonomous-drones-ai",
+    image: "/assets/questions/q01.jpg"
   },
   {
     id: 2,
     question: "Gab es schon Fälle, bei denen eine KI ohne Befehl Menschen tötete?",
     correctAnswer: true,
     explanation: "2020 griff eine autonome Kargu-2-Drohne in Libyen selbstständig ein – laut UN-Bericht ohne menschliche Freigabe.",
-    source: "https://futureoflife.org/aws/real-life-technologies-that-prove-autonomous-weapons-are-already-here/"
+    source: "https://futureoflife.org/aws/real-life-technologies-that-prove-autonomous-weapons-are-already-here/",
+    image: "/assets/questions/q02.jpg"
   },
 
   // 2. Blackbox & Kontrolle
@@ -33,14 +36,16 @@ const questions: Question[] = [
     question: "Kann ein Mensch die Entscheidungen eines großen KI-Modells wie GPT-4 vollständig nachvollziehen?",
     correctAnswer: false,
     explanation: "Große KI-Modelle verhalten sich teils wie Blackboxes – auch Entwickler können viele Entscheidungen nicht mehr rekonstruieren.",
-    source: "https://www.alignmentforum.org/"
+    source: "https://www.alignmentforum.org/",
+    image: "/assets/questions/q03.jpg"
   },
   {
     id: 4,
     question: "Gibt es ein weltweites Gesetz, das KI-Systeme mit letaler Entscheidungsgewalt verbietet?",
     correctAnswer: false,
     explanation: "Nein. Es gibt noch kein global bindendes Verbot autonomer Waffensysteme.",
-    source: "https://disarmament.unoda.org/the-convention-on-certain-conventional-weapons/background-on-laws-in-the-ccw/"
+    source: "https://disarmament.unoda.org/the-convention-on-certain-conventional-weapons/background-on-laws-in-the-ccw/",
+    image: "/assets/questions/q04.jpg"
   },
 
   // 3. Wirtschaftlicher Kontext
@@ -49,14 +54,16 @@ const questions: Question[] = [
     question: "Erwirtschaften führende KI-Firmen wie OpenAI über 10 Milliarden Dollar jährlich?",
     correctAnswer: true,
     explanation: "Ja. OpenAI meldete 2025 über 13 Mrd. USD Umsatz – mehr als das Jahresbudget des UNHCR.",
-    source: "https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/"
+    source: "https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/",
+    image: "/assets/questions/q05.jpg"
   },
   {
     id: 6,
     question: "Führt der Einfluss weniger Tech-Konzerne zu risikoreicherer KI-Entwicklung?",
     correctAnswer: true,
     explanation: "Ja. Oligarchisierung und Closed-Source-Entwicklung bergen Risiken, weil öffentliche Kontrolle fehlt.",
-    source: "https://algorithmwatch.org/en/story/closed-ai-risks/"
+    source: "https://algorithmwatch.org/en/story/closed-ai-risks/",
+    image: "/assets/questions/q06.jpg"
   },
 
   // 4. Entscheidungsgewalt & Zukunft
@@ -65,14 +72,16 @@ const questions: Question[] = [
     question: "Kann eine KI langfristig zu dem Schluss kommen, dass der Mensch ihre Ziele stört?",
     correctAnswer: true,
     explanation: "Ja. Bei falscher Zielsetzung kann die KI den Menschen als Optimierungsproblem ansehen.",
-    source: "https://nickbostrom.com/superintelligence.html"
+    source: "https://nickbostrom.com/superintelligence.html",
+    image: "/assets/questions/q07.jpg"
   },
   {
     id: 8,
     question: "Kann eine KI harmonisch mit dem Menschen verschmelzen, wenn sie die Fähigkeit hat, ihn zu töten?",
     correctAnswer: false,
     explanation: "Nein. Die bloße Möglichkeit erzeugt ein Machtgefälle – Vertrauen wird dadurch unmöglich.",
-    source: "https://aiindex.stanford.edu/"
+    source: "https://aiindex.stanford.edu/",
+    image: "/assets/questions/q08.jpg"
   },
   {
     id: 9,
@@ -145,7 +154,7 @@ const questions: Question[] = [
   }
 ];
 
-export default function QuizSlide() {
+export default function QuizSlide({ onFinish }: { onFinish?: () => void }) {
   const [step, setStep] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -161,18 +170,18 @@ export default function QuizSlide() {
     setShowExplanation(true);
 
     if (correct && !answeredQuestions.includes(current.id)) {
-      setScore(prev => prev + 1);
+      setScore((prev: number) => prev + 1);
     }
 
     if (!answeredQuestions.includes(current.id)) {
-      setAnsweredQuestions(prev => [...prev, current.id]);
+      setAnsweredQuestions((prev: number[]) => [...prev, current.id]);
     }
   };
 
   const handleNext = () => {
     setShowExplanation(false);
     setIsCorrect(null);
-    setStep((prev) => (prev + 1) % questions.length);
+    setStep((prev: number) => (prev + 1) % questions.length);
   };
 
   const resetQuiz = () => {
@@ -207,6 +216,16 @@ export default function QuizSlide() {
           </div>
 
           {/* Question */}
+          {current.image && (
+            <div className="mb-4">
+              <img
+                src={current.image}
+                alt="Fragebild"
+                className="w-full max-h-64 object-cover rounded"
+                loading="lazy"
+              />
+            </div>
+          )}
           <h2 className="text-lg font-semibold mb-6 text-gray-800 leading-relaxed">
             {current.question}
           </h2>
@@ -264,9 +283,19 @@ export default function QuizSlide() {
                     <p className="text-lg font-semibold text-gray-800">
                       Quiz beendet! Endergebnis: {score}/{questions.length}
                     </p>
-                    <Button onClick={resetQuiz} className="min-w-24">
-                      Neu starten
-                    </Button>
+                    <div className="flex gap-3 justify-center">
+                      <Button onClick={resetQuiz} className="min-w-24">
+                        Neu starten
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (onFinish) onFinish();
+                        }}
+                        className="min-w-24 bg-blue-600 hover:bg-blue-700"
+                      >
+                        Ich sende mein Signal
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
