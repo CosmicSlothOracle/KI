@@ -6,6 +6,10 @@
   NODE_VERSION = "18"
   # Safety: avoid peer-deps resolution failures in Netlify CI
   NPM_FLAGS = "--legacy-peer-deps --no-audit --no-fund"
+  # Ensure npm ci also honors legacy peer deps behavior
+  NPM_CONFIG_LEGACY_PEER_DEPS = "true"
+  NPM_CONFIG_AUDIT = "false"
+  NPM_CONFIG_FUND = "false"
 
 # Enable Netlify Blobs
 [functions]
