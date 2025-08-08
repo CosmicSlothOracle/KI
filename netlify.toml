@@ -4,6 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Safety: avoid peer-deps resolution failures in Netlify CI
+  NPM_FLAGS = "--legacy-peer-deps --no-audit --no-fund"
 
 # Enable Netlify Blobs
 [functions]
